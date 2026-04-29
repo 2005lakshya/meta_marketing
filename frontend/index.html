@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta Ads Chat Analyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #13213a;
+      --paper: #f7f6f2;
+      --accent: #f25f4c;
+      --accent-2: #0ea5e9;
+      --card: #ffffffcc;
+      --ok: #0f766e;
+      --warn: #b45309;
+      --shadow: 0 20px 60px rgba(19, 33, 58, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Bricolage Grotesque", sans-serif;
+      background:
+        radial-gradient(900px 450px at 5% 15%, #fde68a90 0%, transparent 60%),
+        radial-gradient(700px 400px at 95% 20%, #7dd3fc99 0%, transparent 70%),
+        linear-gradient(125deg, #fffaf0 0%, #f8fafc 45%, #eef2ff 100%);
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .orb {
+      position: fixed;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      filter: blur(30px);
+      opacity: 0.32;
+      pointer-events: none;
+      animation: drift 16s ease-in-out infinite alternate;
+    }
+
+    .orb.one {
+      background: #f97316;
+      top: -60px;
+      left: -40px;
+    }
+
+    .orb.two {
+      background: #38bdf8;
+      bottom: -90px;
+      right: -50px;
+      animation-delay: 2s;
+    }
+
+    @keyframes drift {
+      from { transform: translateY(-12px) scale(1); }
+      to { transform: translateY(14px) scale(1.08); }
+    }
+
+    .shell {
+      width: min(980px, 100%);
+      background: var(--card);
+      backdrop-filter: blur(8px);
+      border: 1px solid #ffffff;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 72vh;
+      max-height: calc(100vh - 56px);
+      animation: rise 600ms ease-out;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .side {
+      border-right: 1px solid #e2e8f0;
+      padding: 24px;
+      background: linear-gradient(180deg, #fff, #f8fafc 65%, #fff7ed);
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    .side::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .side::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .side::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .side::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: "Space Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: #0f172a;
+      background: #e2e8f0;
+      border-radius: 999px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.04;
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: #334155;
+      line-height: 1.45;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #fff;
+      transition: all 140ms ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent-2);
+    }
+
+    .chat {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .top {
+      padding: 18px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffffd8;
+    }
+
+    .top h2 {
+      margin: 0;
+      font-size: 17px;
+      font-family: "Space Mono", monospace;
+      font-weight: 700;
+    }
+
+    .state {
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: #ecfeff;
+      color: var(--ok);
+      border: 1px solid #99f6e4;
+    }
+
+    .feed {
+      padding: 18px;
+      overflow-y: scroll !important;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      height: 100%;
+      scrollbar-width: auto;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.1)),
+        repeating-linear-gradient(0deg, transparent 0 26px, rgba(15,23,42,0.03) 26px 27px);
+      scroll-behavior: smooth;
+    }
+
+    .feed::-webkit-scrollbar {
+      width: 14px;
+    }
+
+    .feed::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+      margin: 5px 0;
+    }
+
+    .feed::-webkit-scrollbar-thumb {
+      background: #64748b;
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+      min-height: 40px;
+    }
+
+    .feed::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    .bubble {
+      max-width: 80%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      animation: pop 220ms ease-out;
+      white-space: pre-wrap;
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .you {
+      margin-left: auto;
+      background: linear-gradient(135deg, #f97316, #fb7185);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .meta {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 8px;
+      font-family: "Space Mono", monospace;
+    }
+
+    .composer {
+      padding: 14px;
+      border-top: 1px solid #e2e8f0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      background: #fff;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: "Bricolage Grotesque", sans-serif;
+    }
+
+    input:focus {
+      outline: 2px solid #bae6fd;
+      border-color: #0ea5e9;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #fb7185);
+      color: #fff;
+      padding: 0 18px;
+      font-family: "Space Mono", monospace;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 120ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 880px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .side {
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .bubble {
+        max-width: 92%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+
+  <main class="shell">
+    <aside class="side">
+      <span class="badge">META ADS ASSIST</span>
+      <h1>Ask Your Ads Data</h1>
+      <p>Natural language analytics over your MongoDB insights. Ask spending, clicks, CTR, CPC, top campaigns, and date-based trends.</p>
+      <div class="chips">
+        <button class="chip" data-q="How much did we spend last 7 days?">Spend 7D</button>
+        <button class="chip" data-q="Top 5 campaigns by spend in last 30 days">Top Campaigns</button>
+        <button class="chip" data-q="Average CTR yesterday">CTR Yesterday</button>
+        <button class="chip" data-q="How much did we spend on Tuesday?">Tuesday Spend</button>
+      </div>
+    </aside>
+
+    <section class="chat">
+      <header class="top">
+        <h2>Conversation</h2>
+        <span id="state" class="state">Ready</span>
+      </header>
+
+      <div id="feed" class="feed"></div>
+
+      <form id="chatForm" class="composer">
+        <input id="question" placeholder="Ask a question about ads performance..." autocomplete="off" required />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const feed = document.getElementById('feed');
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('question');
+    const state = document.getElementById('state');
+
+    function addBubble(text, type, meta = '') {
+      const wrap = document.createElement('div');
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${type}`;
+      bubble.textContent = text;
+      wrap.appendChild(bubble);
+
+      if (meta) {
+        const metaEl = document.createElement('div');
+        metaEl.className = 'meta';
+        metaEl.textContent = meta;
+        wrap.appendChild(metaEl);
+      }
+
+      feed.appendChild(wrap);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    async function ask(question) {
+      addBubble(question, 'you');
+      state.textContent = 'Thinking';
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          const msg = data.detail || 'Request failed';
+          addBubble(`Error: ${msg}`, 'bot');
+          return;
+        }
+
+        const plan = data.plan || {};
+        const meta = `metric=${plan.metric || 'n/a'} | group_by=${plan.group_by || 'n/a'} | range=${plan.date_range?.start || '?'}..${plan.date_range?.end || '?'}`;
+        addBubble(data.answer || 'No response.', 'bot', meta);
+      } catch (err) {
+        addBubble('I could not reach the API. Check if the FastAPI server is running.', 'bot');
+      } finally {
+        state.textContent = 'Ready';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+      input.value = '';
+      await ask(q);
+    });
+
+    document.querySelectorAll('.chip').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const q = btn.getAttribute('data-q');
+        if (q) await ask(q);
+      });
+    });
+
+    addBubble('Hi, I am your ads data assistant. Ask me about spend, clicks, CTR, CPC, CPM, reach, or top campaign performance.', 'bot');
+  </script>
+</body>
+</html>
